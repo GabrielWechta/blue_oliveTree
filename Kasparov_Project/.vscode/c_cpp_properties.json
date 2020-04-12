@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/gabriel/Desktop/arduino-1.8.12-linux64/arduino-1.8.12/tools/**",
+                "/home/gabriel/Desktop/arduino-1.8.12-linux64/arduino-1.8.12/hardware/arduino/avr/**",
+                "/home/gabriel/Arduino/libraries/TM1637-master",
+                "/home/gabriel/Desktop/arduino-1.8.12-linux64/arduino-1.8.12/**",
+                "${workspaceFolder}/**"
+            ],
+            "defines": ["USBCON"],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64",
+            "forcedInclude": [
+                "/home/gabriel/Desktop/arduino-1.8.12-linux64/arduino-1.8.12/hardware/arduino/avr/cores/arduino/Arduino.h"
+            ]
+        }
+    ],
+    "version": 4
+}

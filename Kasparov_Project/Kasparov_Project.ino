@@ -18,84 +18,99 @@ const int upButtonPin = 9;
 int buttonState = 0;
 int W[4];
 int B[4];
-uint8_t data_W[] = { 0xff, 0xff, 0xff, 0xff };
-uint8_t data_B[] = { 0xff, 0xff, 0xff, 0xff };
-uint8_t DEAD[] = { 94, 121, 119, 94 };
+uint8_t data_W[] = {0xff, 0xff, 0xff, 0xff};
+uint8_t data_B[] = {0xff, 0xff, 0xff, 0xff};
+uint8_t DEAD[] = {94, 121, 119, 94};
 bool button_pressed = false;
 
-class Timer {
-  private:
-    bool time_up = false;
-    int timeTable[4];
-    char kind = 'N'; //var to recognize type of Timer inside second() method.
+class Timer
+{
+private:
+  bool time_up = false;
+  int timeTable[4];
+  char kind = 'N'; //var to recognize type of Timer inside second() method.
 
-  public:
-    int time;
-    Timer(int time, char kind);
-    bool second();
-    void copyTimeTable(int* table);
-    void addMinute();
+public:
+  int time;
+  Timer(int time, char kind);
+  bool second();
+  void copyTimeTable(int *table);
+  void addMinute();
 };
 
-Timer::Timer(int time, char kind) {
+Timer::Timer(int time, char kind)
+{
   this->time = time;
   this->kind = kind;
-  for (int i = 3; i >= 0; i--) {
+  for (int i = 3; i >= 0; i--)
+  {
     timeTable[i] = time % 10;
     time /= 10;
   }
 }
 
-void Timer::copyTimeTable(int* outside) {
-  for (int i = 0; i < 4; i++) {
+void Timer::copyTimeTable(int *outside)
+{
+  for (int i = 0; i < 4; i++)
+  {
     outside[i] = timeTable[i];
   }
 }
 
-bool Timer::second() {
+bool Timer::second()
+{
   int whiteButtonState = LOW;
   int blackButtonState = LOW;
 
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 100; i++)
+  {
     delay(10);
     whiteButtonState = digitalRead(whiteButtonPin);
     blackButtonState = digitalRead(blackButtonPin);
 
-    if ((whiteButtonState == HIGH && this->kind == 'W') || (blackButtonState == HIGH && this->kind == 'B')) {
+    if ((whiteButtonState == HIGH && this->kind == 'W') || (blackButtonState == HIGH && this->kind == 'B'))
+    {
       whiteButtonState = LOW;
       blackButtonState = LOW;
       return true;
     }
   }
 
-  if (time % 100 == 0) time -= 40;
+  if (time % 100 == 0)
+    time -= 40;
 
   time--;
   int tmp = time;
 
-  for (int i = 3; i >= 0; i--) {
+  for (int i = 3; i >= 0; i--)
+  {
     timeTable[i] = tmp % 10;
     tmp /= 10;
   }
 
-  if (time % 1000 == 0) time_up = true;
+  if (time % 1000 == 0)
+    time_up = true;
 
   return false;
 }
 
-void Timer::addMinute() {
+void Timer::addMinute()
+{
   this->time += 100;
-  for (int i = 3; i >= 0; i--) {
-    timeTable[i] = time % 10;
-    time /= 10;
+  int tmp_time = this->time;
+
+  for (int i = 3; i >= 0; i--)
+  {
+    this->timeTable[i] = tmp_time % 10;
+    tmp_time /= 10;
   }
 }
 
 Timer WhiteTimer = Timer(0, 'W');
 Timer BlackTimer = Timer(0, 'B');
 
-
-void showWhite() {
+void showWhite()
+{
   WhiteTimer.copyTimeTable(W);
   data_W[0] = display_W.encodeDigit(W[0]);
   data_W[1] = display_W.encodeDigit(W[1]);
@@ -104,44 +119,57 @@ void showWhite() {
   display_W.setSegments(data_W);
 }
 
-void showBlack() {
+void showBlack()
+{
   BlackTimer.copyTimeTable(B);
   data_B[0] = display_B.encodeDigit(B[0]);
   data_B[1] = display_B.encodeDigit(B[1]);
   data_B[2] = display_B.encodeDigit(B[2]);
   data_B[3] = display_B.encodeDigit(B[3]);
   display_B.setSegments(data_B);
-
 }
 
-void stop() {
-  while (true);
+void stop()
+{
+  while (true)
+    ;
 }
 
-void timeSetup(Timer WhiteTimer, Timer BlackTimer) {
-  int upButtonState = LOW;
-  int okButtonState = LOW;
+void timeSetup()
+{
+  int upButtonState = 0;
+  int okButtonState = 0;
+  showWhite(); //to clear lcds
+  showBlack();
 
-  while (okButtonState == LOW) {
-    showWhite();
-    if (upButtonState == HIGH) {
+  while (okButtonState == 0)
+  {
+    upButtonState = digitalRead(upButtonPin);
+    okButtonState = digitalRead(okButtonPin);
+
+    if (upButtonState == 1)
+    {
       WhiteTimer.addMinute();
+      showWhite();
     }
-    upButtonState = digitalRead(upButtonPin);
-    okButtonState = digitalRead(okButtonPin);
+    delay(500);
   }
 
-  upButtonState = LOW;
-  okButtonState = LOW;
-  
-  while (okButtonState == LOW) {
-    showBlack();
-    if (upButtonState == HIGH) {
-      BlackTimer.addMinute();
-    }
+  upButtonState = 0;
+  okButtonState = 0;
+
+  while (okButtonState == 0)
+  {
     upButtonState = digitalRead(upButtonPin);
     okButtonState = digitalRead(okButtonPin);
+    if (upButtonState == 1)
+    {
+      BlackTimer.addMinute();
+      showBlack();
+    }
+    delay(500);
   }
+  return;
 }
 
 void setup()
@@ -155,23 +183,25 @@ void setup()
   display_B.setBrightness(0x0f);
 
   Serial.begin(9600);
-
-  timeSetup(WhiteTimer, BlackTimer);
+  timeSetup();
 }
 
 void loop()
 {
 
-  while (1) {
+  while (1)
+  {
     button_pressed = WhiteTimer.second();
     showWhite();
 
-    if (WhiteTimer.time % 10000 == 0) {
+    if (WhiteTimer.time % 10000 == 0)
+    {
       display_W.setSegments(DEAD);
       stop();
     }
 
-    if (button_pressed == true) {
+    if (button_pressed == true)
+    {
       button_pressed = false;
       break;
     }
@@ -179,16 +209,19 @@ void loop()
 
   delay(300);
 
-  while (1) {
+  while (1)
+  {
     button_pressed = BlackTimer.second();
     showBlack();
 
-    if (BlackTimer.time % 10000 == 0) {
+    if (BlackTimer.time % 10000 == 0)
+    {
       display_B.setSegments(DEAD);
       stop();
     }
 
-    if (button_pressed == true) {
+    if (button_pressed == true)
+    {
       button_pressed = false;
       break;
     }
